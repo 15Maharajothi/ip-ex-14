@@ -1,0 +1,145 @@
+//xml
+
+<dependencies>
+    <dependency>
+        <groupId>javax.ws.rs</groupId>
+        <artifactId>javax.ws.rs-api</artifactId>
+        <version>2.1.1</version>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.containers</groupId>
+        <artifactId>jersey-container-servlet</artifactId>
+        <version>2.32</version>
+    </dependency>
+    <dependency>
+        <groupId>org.glassfish.jersey.inject</groupId>
+        <artifactId>jersey-hk2</artifactId>
+        <version>2.32</version>
+    </dependency>
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>8.0.25</version>
+    </dependency>
+</dependencies>
+
+//java
+public class Customer {
+    private int id;
+    private String name;
+    private String email;
+    private String phone;
+
+    // Getters, setters, and constructo@Path("/customers")
+public class CustomerResource {
+    private CustomerService customerService;
+
+    public CustomerResource() {
+        this.customerService = new CustomerService();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Customer> getCustomers() {
+        return customerService.getAllCustomers();
+    }
+
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Customer createCustomer(Customer customer) {
+        return customerService.createCustomer(customer);
+    }
+
+    @PUT
+    @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Customer updateCustomer(@PathParam("id") int id, Customer customer) {
+        customer.setId(id);
+        return customerService.updateCustomer(customer);
+    }
+}
+public class CustomerService {
+    private CustomerDAO customerDAO;
+
+    public CustomerService() {
+        this.customerDAO = new CustomerDAO();
+    }
+
+    public List<Customer> getAllCustomers() {
+        return customerDAO.getAllCustomers();
+    }
+
+    public Customer createCustomer(Customer customer) {
+        return customerDAO.createCustomer(customer);
+    }
+
+    public Customer updateCustomer(Customer customer) {
+        return customerDAO.updateCustomer(customer);
+    }
+}
+public class CustomerDAO {
+    private static final String URL = "jdbc:mysql://localhost:3306/your_database";
+    private static final String USERNAME = "your_username";
+    private static final String PASSWORD = "your_password";
+
+    public List<Customer> getAllCustomers() {
+        List<Customer> customers = new ArrayList<>();
+        // Implement the logic to fetch all customers from the database
+        return customers;
+    }
+
+    public Customer createCustomer(Customer customer) {
+        // Implement the logic to create a new customer in the database
+        return customer;
+    }
+
+    public Customer updateCustomer(Customer customer) {
+        // Implement the logic to update an existing customer in the database
+        return customer;
+    }
+}
+@ApplicationPath("/api")
+public class CustomerApplication extends Application {
+    @Override
+    public Set<Class<?>> getClasses() {
+        Set<Class<?>> classes = new HashSet<>();
+        classes.add(CustomerResource.class);
+        return classes;
+    }
+}
+public class CustomerClient {
+    private static final String BASE_URL = "http://localhost:8080/your-app/api/customers";
+
+    public static void main(String[] args) {
+        Client client = ClientBuilder.newClient();
+        WebTarget target = client.target(BASE_URL);
+
+        // Get all customers
+        List<Customer> customers = target.request(MediaType.APPLICATION_JSON)
+                .get(new GenericType<List<Customer>>() {});
+        System.out.println("All customers: " + customers);
+
+        // Create a new customer
+        Customer newCustomer = new Customer("John Doe", "john.doe@example.com", "1234567890");
+        Response response = target.request(MediaType.APPLICATION_JSON)
+                .post(Entity.entity(newCustomer, MediaType.APPLICATION_JSON));
+        Customer createdCustomer = response.readEntity(Customer.class);
+        System.out.println("Created customer: " + createdCustomer);
+
+        // Update an existing customer
+        int customerId = createdCustomer.getId();
+        createdCustomer.setName("Jane Doe");
+        createdCustomer.setEmail("jane.doe@example.com");
+        createdCustomer.setPhone("0987654321");
+        Customer updatedCustomer = target.path("{id}")
+                .resolveTemplate("id", customerId)
+                .request(MediaType.APPLICATION_JSON)
+                .put(Entity.entity(createdCustomer, MediaType.APPLICATION_JSON))
+                .readEntity(Customer.class);
+        System.out.println("Updated customer: " + updatedCustomer);
+    }
+}
+
+}
